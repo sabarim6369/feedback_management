@@ -28,7 +28,7 @@ const addfeedback = async (req, res) => {
 
 const addFeedbackContent = async (req, res) => {
     try {
-        const { feedbackcontent,feedbackId } = req.body; 
+        const { feedbackcontent, feedbackId } = req.body;
 
         if (!feedbackcontent || !Array.isArray(feedbackcontent)) {
             return res.status(400).json({ message: "Feedback content must be an array" });
@@ -40,7 +40,19 @@ const addFeedbackContent = async (req, res) => {
             return res.status(404).json({ message: "Feedback not found" });
         }
 
-        feedback.feedbackcontent.push(...feedbackcontent);
+        feedbackcontent.forEach((newContent) => {
+            const existingDay = feedback.feedbackcontent.find(
+                (content) => content.date.toISOString().split('T')[0] === newContent.date.split('T')[0]
+            );
+
+            if (existingDay) {
+                existingDay.records = Array.isArray(existingDay.records)
+                    ? [...existingDay.records, newContent.records]
+                    : [existingDay.records, newContent.records];
+            } else {
+                feedback.feedbackcontent.push(newContent);
+            }
+        });
 
         await feedback.save();
         res.status(200).json({ message: "Feedback content added successfully", feedback });
@@ -49,6 +61,10 @@ const addFeedbackContent = async (req, res) => {
         res.status(500).json({ message: "Server error", error: err });
     }
 };
+
+
+
+
 
 const updatefeedback = async (req, res) => {
     try {
