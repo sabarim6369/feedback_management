@@ -102,6 +102,15 @@ const feedbackschema = new mongoose.Schema({
     enddate: {
         type: Date,
     },
+    tutors: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Tutor",  // Assuming you have a Tutor model
+    }],
+    status: {
+        type: String,
+        enum: ["Active", "Inactive"],
+        default: "Active",
+    },
     feedbackcontent: [
         {
             date: {
