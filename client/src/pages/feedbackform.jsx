@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import './FeedbackForm.css';
+import '../styles/feedbackform.css';
 import feedbackImg from '../assets/in.jpg';
 import axios from 'axios';
 
@@ -21,6 +21,7 @@ function FeedbackForm() {
     const fetchFeedback = async () => {
       try {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/feedback/feedbacks/${id}`);
+        // const response = await axios.get(`http://localhost:8000/api/feedback/feedbacks/${id}`);
         setFeedbackData(response.data);
 
         const today = new Date().toISOString().split('T')[0];
