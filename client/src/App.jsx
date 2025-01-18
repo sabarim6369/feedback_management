@@ -1,25 +1,12 @@
 import { ChakraProvider, Box } from '@chakra-ui/react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Colleges from './pages/Colleges';
 import Tutors from './pages/Tutors';
 import Feedback from './pages/Feedback';
 import FeedbackDetails from './pages/FeedbackDetails';
 import FeedbackForm from './pages/feedbackform';
-
-// Protected Route component
-const ProtectedRoute = ({ children }) => {
-  const location = useLocation();
-  const isFeedbackFormPage = location.pathname.startsWith('/feedbackform/');
-
-  // If user is on feedback form page, redirect to the same page
-  if (isFeedbackFormPage) {
-    return <Navigate to={location.pathname} replace />;
-  }
-
-  return children;
-};
-
+import Login from './pages/Login';
 function App() {
   return (
     <ChakraProvider>
@@ -31,66 +18,25 @@ function App() {
 }
 
 function MainLayout() {
-  const location = useLocation();
-  const isFeedbackFormPage = location.pathname.startsWith('/feedbackform/');
-
+  const location = useLocation(); 
+  const isFeedbackFormPage = location.pathname.startsWith('/feedbackform/'); 
+  const isHomePage = location.pathname === '/';
   return (
     <Box display="flex">
-      {!isFeedbackFormPage && <Sidebar />}
+      {!isFeedbackFormPage && !isHomePage && <Sidebar />}
       <Box flex="1" p={5}>
         <Routes>
-          {/* Protected Admin Routes */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Colleges />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/tutors"
-            element={
-              <ProtectedRoute>
-                <Tutors />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/feedback"
-            element={
-              <ProtectedRoute>
-                <Feedback />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/feedback/:id"
-            element={
-              <ProtectedRoute>
-                <FeedbackDetails />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Public Feedback Form Route */}
+          <Route path="/college" element={<Colleges />} />
+          <Route path="/tutors" element={<Tutors />} />
+          <Route path="/feedback" element={<Feedback />} />
+          <Route path="/feedback/:id" element={<FeedbackDetails />} />
           <Route path="/feedbackform/:id" element={<FeedbackForm />} />
-
-          {/* Catch all route - redirect to feedback form if on feedback form page, otherwise to home */}
-          <Route
-            path="*"
-            element={
-              isFeedbackFormPage ? (
-                <Navigate to={location.pathname} replace />
-              ) : (
-                <Navigate to="/" replace />
-              )
-            }
-          />
+          <Route path="/" element={<Login />} />
         </Routes>
       </Box>
     </Box>
   );
 }
+
 
 export default App;

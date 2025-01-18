@@ -46,32 +46,32 @@ const adduser = async (req, res) => {
         res.status(500).json({ message: "Server error", error: err });
     }
 };
-const loginuser=async(req,res)=>{
-    const{email,password}=req.body;
-    try{
-        const user=authenticationModel.findOne({email});
-        if(!user){
-            return res.status(401).json({ message: "Authentication failed.User not exists" });
+const loginuser = async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const user = await authenticationModel.findOne({ email }); // Make sure to use 'await' here
+        if (!user) {
+            return res.status(401).json({ message: "Authentication failed. User not found." });
         }
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             return res.status(401).json({ message: "Invalid credentials" });
-        }   
+        }
         const token = jwt.sign(
-            { userId: newUser._id, role: newUser.role }, 
-            SECRET_KEY, 
-            { expiresIn: "5h" } 
+            { userId: user._id, role: user.role }, // Use 'user' here instead of 'newUser'
+            SECRET_KEY,
+            { expiresIn: "5h" }
         );
         res.status(200).json({
             message: "Login successful",
             token: token,
-          });
-    }
-    catch(err){
+        });
+    } catch (err) {
         console.error("Error occurred:", err);
         res.status(500).json({ message: "Server error", error: err });
     }
-}
+};
+
 const updateuser=async(req,res)=>{
     try{
 

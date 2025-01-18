@@ -5,9 +5,10 @@ const db = require("./config/db");
 const collegerouter = require("./routers/collegerouter");
 const feedbackrouter = require("./routers/feedbackrouter");
 const tutorrouter = require("./routers/tutor");
-const feedbackmodel = require("./models/feedbackschema"); // Import feedback schema for cron
+const authrouter=require("./routers/authenticationrouter")
+const feedbackmodel = require("./models/feedbackschema"); 
 const cron = require("node-cron");
-const cors = require("cors"); // Import the CORS package
+const cors = require("cors"); 
 
 const app = express();
 app.use(cors());
@@ -37,7 +38,8 @@ cron.schedule("0 0 * * *", async () => {
 
 app.use("/api/college", collegerouter);
 app.use("/api/feedback", feedbackrouter);
-app.use("/api/tutor", tutorrouter);
+app.use("/api/tutor", tutorrouter)
+app.use("/api/auth",authrouter);
 
 app.listen(8000, () => {
   console.log("Server is running on port 8000");

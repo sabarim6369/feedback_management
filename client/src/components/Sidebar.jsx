@@ -1,15 +1,27 @@
-import { Box, VStack, Text, Icon, Tooltip } from '@chakra-ui/react'
-import { Link, useLocation } from 'react-router-dom'
-import { FaUniversity, FaChalkboardTeacher, FaComments } from 'react-icons/fa'
-
+import { Box, VStack, Text, Icon, Tooltip, Button } from '@chakra-ui/react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { FaUniversity, FaChalkboardTeacher, FaComments, FaUserPlus } from 'react-icons/fa';
+import { useState } from 'react';
+import AddUserModal from './AddUserModal'; 
 function Sidebar() {
-  const location = useLocation()
-
+  const location = useLocation();
+  const navigate = useNavigate(); 
+  const [isModalOpen, setIsModalOpen] = useState(false); 
   const menuItems = [
-    { icon: FaUniversity, text: 'Colleges', path: '/' },
-    { icon: FaChalkboardTeacher, text: 'Tutors', path: '/tutors' },
     { icon: FaComments, text: 'Feedback', path: '/feedback' },
-  ]
+    { icon: FaUniversity, text: 'Colleges', path: '/college' },
+    { icon: FaChalkboardTeacher, text: 'Tutors', path: '/tutors' },
+   
+  ];
+
+  const handleAddUserClick = () => {
+    setIsModalOpen(true); 
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/'); 
+  };
 
   return (
     <Box
@@ -46,9 +58,7 @@ function Sidebar() {
                 bg={location.pathname === item.path ? 'blue.700' : 'transparent'}
                 _hover={{ bg: 'blue.700', transform: 'scale(1.05)' }}
                 transition="all 0.2s ease-in-out"
-                boxShadow={
-                  location.pathname === item.path ? 'md' : 'none'
-                }
+                boxShadow={location.pathname === item.path ? 'md' : 'none'}
               >
                 <Icon as={item.icon} boxSize={5} mr={3} />
                 <Text fontSize="md" fontWeight="medium">
@@ -58,9 +68,32 @@ function Sidebar() {
             </Tooltip>
           </Link>
         ))}
+        <Button
+          leftIcon={<FaUserPlus />}
+          colorScheme="blue"
+          variant="solid"
+          onClick={handleAddUserClick}
+          width="full"
+        >
+          Add User
+        </Button>
       </VStack>
+
+      <Box position="absolute" bottom={5} left="50%" transform="translateX(-50%)">
+        <Button
+          colorScheme="red"
+          variant="solid"
+          size="lg"
+          width="full"
+          onClick={handleLogout}
+        >
+          Logout
+        </Button>
+      </Box>
+
+      <AddUserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </Box>
-  )
+  );
 }
 
-export default Sidebar
+export default Sidebar;
