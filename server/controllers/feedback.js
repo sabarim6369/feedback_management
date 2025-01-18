@@ -23,7 +23,7 @@ const addfeedback = async (req, res) => {
 
     await feedback.save();
 
-    const feedbackLink = `http://localhost:5173/feedbackform/${feedback._id}`;
+    const feedbackLink = `https://feedback-management-iota.vercel.app/feedbackform/${feedback._id}`;
 
     feedback.link = feedbackLink;
 
