@@ -125,18 +125,7 @@ const Login = () => {
           </Button>
         </form>
         
-        <Box textAlign="center" mt={4}>
-          <Text>
-            Don't have an account? 
-            <Button 
-              variant="link" 
-              colorScheme="blue" 
-              onClick={() => navigate('/signup')}
-            >
-              Sign up
-            </Button>
-          </Text>
-        </Box>
+       
       </Box>
     </Box>
   );
