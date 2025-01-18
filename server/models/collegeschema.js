@@ -8,6 +8,11 @@ const collegeschema=new mongoose.Schema({
     },
     place:{
         type:String
+    },
+    status:{
+        type:String,
+        enum:["active","inactive"],
+        default:"active"
     }
 
 })

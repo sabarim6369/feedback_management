@@ -1,247 +1,293 @@
 import {
-    Box,
-    Heading,
-    Table,
-    Thead,
-    Tbody,
-    Tr,
-    Th,
-    Td,
-    Badge,
-    Text,
-    Grid,
-    GridItem,
-    Card,
-    CardHeader,
-    CardBody,
-    Stat,
-    StatNumber,
-    Tag,
-    HStack,
-    VStack,
-    Divider,
-  } from '@chakra-ui/react'
-  import { useParams } from 'react-router-dom'
-  
-  function FeedbackDetails() {
-    const { id } = useParams()
-  
-    // Mock data - replace with actual data fetching
-    const feedbackDetails = {
-      id,
-      title: 'End Semester Feedback',
-      college: 'Sri Eshwar College of Engineering',
-      department: 'All Departments',
-      tutors: ['Dr. John Doe', 'Dr. Jane Smith'],
-      status: 'Active',
-      fromDate: '2024-03-01',
-      toDate: '2024-03-15',
-      totalDays: 15,
-      link: 'https://feedback.example.com/1',
-      responses: [
-        {
-          id: 1,
-          studentId: 'CSE001',
-          department: 'CSE',
-          rating: 4.5,
-          comment: 'Excellent teaching methodology',
-          submittedAt: '2024-03-10',
-          tutor: 'Dr. John Doe',
-        },
-        {
-          id: 2,
-          studentId: 'ECE002',
-          department: 'ECE',
-          rating: 4.8,
-          comment: 'Very clear explanations and helpful',
-          submittedAt: '2024-03-11',
-          tutor: 'Dr. Jane Smith',
-        },
-      ],
-      stats: {
-        totalResponses: 45,
-        averageRating: 4.2,
-        completionRate: '78%',
-        responsesByDepartment: {
-          'CSE': 20,
-          'ECE': 15,
-          'MECH': 10,
-        },
-      },
-    }
-  
+  Box,
+  Heading,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Badge,
+  Text,
+  Grid,
+  GridItem,
+  Card,
+  CardHeader,
+  CardBody,
+  Tag,
+  HStack,
+  VStack,
+  Spinner,
+  Button,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  useDisclosure,
+} from '@chakra-ui/react';
+import { useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+};
+
+function FeedbackDetails() {
+  const { id } = useParams();
+  const [feedbackDetails, setFeedbackDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedDay, setSelectedDay] = useState(null);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [viewMode, setViewMode] = useState('all');
+
+  useEffect(() => {
+    const fetchFeedbackDetails = async () => {
+      try {
+        const response = await axios.get(`http://localhost:8000/api/feedback/feedbacks/${id}`);
+        setFeedbackDetails(response.data);
+      } catch (error) {
+        console.error('Error fetching feedback details:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeedbackDetails();
+  }, [id]);
+
+  if (loading) {
     return (
-      <Box>
-        <VStack align="start" spacing={8}>
-          <Box w="100%">
-            <Heading size="lg" mb={2}>{feedbackDetails.title}</Heading>
-            <HStack spacing={4}>
-              <Badge colorScheme={feedbackDetails.status === 'Active' ? 'green' : 'red'} px={2} py={1}>
-                {feedbackDetails.status}
-              </Badge>
-              <Text color="gray.600">
-                {feedbackDetails.fromDate} to {feedbackDetails.toDate} ({feedbackDetails.totalDays} days)
-              </Text>
-            </HStack>
-          </Box>
-  
-          <Grid templateColumns="repeat(4, 1fr)" gap={6} w="100%">
-            <GridItem colSpan={1}>
-              <Card>
-                <CardHeader>
-                  <Heading size="md">Total Responses</Heading>
-                </CardHeader>
-                <CardBody>
-                  <Stat>
-                    <StatNumber>{feedbackDetails.stats.totalResponses}</StatNumber>
-                  </Stat>
-                </CardBody>
-              </Card>
-            </GridItem>
-            <GridItem colSpan={1}>
-              <Card>
-                <CardHeader>
-                  <Heading size="md">Average Rating</Heading>
-                </CardHeader>
-                <CardBody>
-                  <Stat>
-                    <StatNumber>{feedbackDetails.stats.averageRating}/5.0</StatNumber>
-                  </Stat>
-                </CardBody>
-              </Card>
-            </GridItem>
-            <GridItem colSpan={1}>
-              <Card>
-                <CardHeader>
-                  <Heading size="md">Completion Rate</Heading>
-                </CardHeader>
-                <CardBody>
-                  <Stat>
-                    <StatNumber>{feedbackDetails.stats.completionRate}</StatNumber>
-                  </Stat>
-                </CardBody>
-              </Card>
-            </GridItem>
-            <GridItem colSpan={1}>
-              <Card>
-                <CardHeader>
-                  <Heading size="md">Active Days</Heading>
-                </CardHeader>
-                <CardBody>
-                  <Stat>
-                    <StatNumber>{feedbackDetails.totalDays} Days</StatNumber>
-                  </Stat>
-                </CardBody>
-              </Card>
-            </GridItem>
-          </Grid>
-  
-          <Grid templateColumns="repeat(2, 1fr)" gap={6} w="100%">
-            <GridItem>
-              <Card>
-                <CardHeader>
-                  <Heading size="md">Feedback Information</Heading>
-                </CardHeader>
-                <CardBody>
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+        <Spinner size="xl" />
+      </Box>
+    );
+  }
+
+  if (!feedbackDetails) {
+    return <Text color="red.500">Feedback details could not be loaded.</Text>;
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const todayContent = feedbackDetails.feedbackcontent.find(
+    (content) => new Date(content.date).toISOString().split('T')[0] === today
+  );
+  const remainingContent = feedbackDetails.feedbackcontent.filter(
+    (content) => new Date(content.date).toISOString().split('T')[0] !== today
+  );
+
+  const handleViewAll = () => {
+    setViewMode('all');
+    onOpen();
+  };
+
+  const handleDayClick = (day) => {
+    setSelectedDay(day);
+    setViewMode('single');
+  };
+
+  const handleViewAllFeedback = () => {
+    setSelectedDay(null);
+  };
+
+  return (
+    <Box p={8}>
+      <VStack align="start" spacing={8}>
+        <Box w="100%">
+          <Heading size="lg" mb={2}>{feedbackDetails.sessionname}</Heading>
+          <HStack spacing={4}>
+            <Badge colorScheme={feedbackDetails.status === 'Active' ? 'green' : 'red'} px={2} py={1}>
+              {feedbackDetails.status}
+            </Badge>
+            <Text color="gray.600">
+              {formatDate(feedbackDetails.startdate)} to {formatDate(feedbackDetails.enddate)} ({feedbackDetails.days} days)
+            </Text>
+          </HStack>
+        </Box>
+
+        <Grid templateColumns="repeat(2, 1fr)" gap={6} w="100%">
+          <GridItem>
+            <Card>
+              <CardHeader>
+                <Heading size="md">Session Information</Heading>
+              </CardHeader>
+              <CardBody>
+                <VStack align="start" spacing={4}>
+                  <Box>
+                    <Text fontWeight="bold">College:</Text>
+                    <Text>{feedbackDetails.college_id?.collegename || 'N/A'}</Text>
+                  </Box>
+                  <Box>
+                    <Text fontWeight="bold">Departments:</Text>
+                    <HStack wrap="wrap" spacing={2}>
+                      {feedbackDetails.departments.map((dept, index) => (
+                        <Tag key={index} colorScheme="blue">{dept}</Tag>
+                      ))}
+                    </HStack>
+                  </Box>
+                  <Box>
+                    <Text fontWeight="bold">Tutors:</Text>
+                    <HStack wrap="wrap" spacing={2}>
+                      {feedbackDetails.tutors.map((tutor, index) => (
+                        <Tag key={index} colorScheme="green">{tutor.name}</Tag>
+                      ))}
+                    </HStack>
+                  </Box>
+                  <Box>
+                    <Text fontWeight="bold">Feedback Link:</Text>
+                    <Text>
+                      {feedbackDetails.link ? (
+                        <a href={feedbackDetails.link} target="_blank" rel="noopener noreferrer" style={{ color: '#3182ce' }}>
+                          {feedbackDetails.link}
+                        </a>
+                      ) : (
+                        'N/A'
+                      )}
+                    </Text>
+                  </Box>
+                </VStack>
+              </CardBody>
+            </Card>
+          </GridItem>
+
+          <GridItem>
+            <Card>
+              <CardHeader>
+                <Heading size="md">Today's Statistics</Heading>
+              </CardHeader>
+              <CardBody>
+                {todayContent ? (
                   <VStack align="start" spacing={4}>
                     <Box>
-                      <Text fontWeight="bold">College:</Text>
-                      <Text>{feedbackDetails.college}</Text>
-                    </Box>
-                    <Box>
-                      <Text fontWeight="bold">Department:</Text>
-                      <Text>{feedbackDetails.department}</Text>
-                    </Box>
-                    <Box>
-                      <Text fontWeight="bold">Tutors:</Text>
-                      <HStack spacing={2} mt={1}>
-                        {feedbackDetails.tutors.map((tutor, index) => (
-                          <Tag key={index} colorScheme="blue">{tutor}</Tag>
-                        ))}
+                      <Text fontWeight="bold">{formatDate(todayContent.date)}</Text>
+                      <Text>Total Responses: {todayContent.totalResponses}</Text>
+                      <Text>Feedback Type: {todayContent.feedbacktype}</Text>
+                      <HStack spacing={2} mt={2}>
+                        <Button 
+                          size="sm" 
+                          colorScheme="blue"
+                          onClick={() => handleDayClick(todayContent)}
+                        >
+                          View Today's Feedback
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          colorScheme="teal"
+                          onClick={handleViewAll}
+                        >
+                          View All Days Statistics
+                        </Button>
                       </HStack>
                     </Box>
-                    <Box>
-                      <Text fontWeight="bold">Feedback Link:</Text>
-                      <Text 
-                        color="blue.500" 
-                        cursor="pointer" 
-                        onClick={() => window.open(feedbackDetails.link, '_blank')}
-                      >
-                        {feedbackDetails.link}
-                      </Text>
-                    </Box>
                   </VStack>
-                </CardBody>
-              </Card>
-            </GridItem>
-            <GridItem>
-              <Card>
-                <CardHeader>
-                  <Heading size="md">Department-wise Responses</Heading>
-                </CardHeader>
-                <CardBody>
+                ) : (
                   <VStack align="start" spacing={4}>
-                    {Object.entries(feedbackDetails.stats.responsesByDepartment).map(([dept, count]) => (
-                      <Box key={dept} w="100%">
-                        <HStack justify="space-between">
-                          <Text fontWeight="medium">{dept}</Text>
-                          <Text>{count} responses</Text>
-                        </HStack>
-                        <Box
-                          w="100%"
-                          h="4px"
-                          bg="gray.100"
-                          mt={1}
-                          borderRadius="full"
-                          overflow="hidden"
-                        >
-                          <Box
-                            w={`${(count / feedbackDetails.stats.totalResponses) * 100}%`}
-                            h="100%"
-                            bg="blue.500"
-                            borderRadius="full"
-                          />
-                        </Box>
-                      </Box>
-                    ))}
+                    <Text>No responses for today.</Text>
+                    <Button colorScheme="teal" size="sm" onClick={handleViewAll}>
+                      View All Days Statistics
+                    </Button>
                   </VStack>
-                </CardBody>
-              </Card>
-            </GridItem>
-          </Grid>
-  
-          <Box w="100%">
-            <Heading size="md" mb={4}>Responses</Heading>
-            <Table variant="simple" bg="white" shadow="sm" rounded="lg">
-              <Thead bg="gray.50">
-                <Tr>
-                  <Th>Student ID</Th>
-                  <Th>Department</Th>
-                  <Th>Tutor</Th>
-                  <Th>Rating</Th>
-                  <Th>Comment</Th>
-                  <Th>Submitted At</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {feedbackDetails.responses.map((response) => (
-                  <Tr key={response.id}>
-                    <Td>{response.studentId}</Td>
-                    <Td>{response.department}</Td>
-                    <Td>{response.tutor}</Td>
-                    <Td>
-                      <Badge colorScheme="green">{response.rating}/5</Badge>
-                    </Td>
-                    <Td>{response.comment}</Td>
-                    <Td>{response.submittedAt}</Td>
-                  </Tr>
+                )}
+              </CardBody>
+            </Card>
+          </GridItem>
+        </Grid>
+
+        {/* All Feedback Records Table */}
+        <Box w="100%">
+          <Card>
+            <CardHeader>
+              <HStack justify="space-between">
+                <Heading size="md">
+                  {selectedDay ? `Feedback for ${formatDate(selectedDay.date)}` : 'All Feedback Records'}
+                </Heading>
+                {selectedDay && (
+                  <Button 
+                    colorScheme="blue" 
+                    size="sm"
+                    onClick={handleViewAllFeedback}
+                  >
+                    View All Feedback
+                  </Button>
+                )}
+              </HStack>
+            </CardHeader>
+            <CardBody>
+              <Box overflowX="auto">
+                <Table variant="simple">
+                  <Thead bg="gray.50">
+                    <Tr>
+                      <Th>Date</Th>
+                      <Th>Student ID</Th>
+                      <Th>Department</Th>
+                      <Th>Comment</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {(selectedDay ? selectedDay.records : feedbackDetails.feedbackcontent.flatMap(content => 
+                      content.records.map(record => ({
+                        ...record,
+                        date: content.date
+                      }))
+                    )).map((record, index) => (
+                      <Tr key={index}>
+                        <Td>{formatDate(record.date)}</Td>
+                        <Td>{record.email || 'Anonymous'}</Td>
+                        <Td>{record.department || 'N/A'}</Td>
+                        <Td>{record.description || 'No Comment'}</Td>
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table>
+              </Box>
+            </CardBody>
+          </Card>
+        </Box>
+
+        {/* Statistics Modal */}
+        <Modal isOpen={isOpen} onClose={onClose} size="xl">
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>All Days Statistics</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody pb={6}>
+              <VStack align="stretch" spacing={4}>
+                {feedbackDetails.feedbackcontent.map((content, index) => (
+                  <Card key={index} variant="outline">
+                    <CardBody>
+                      <HStack justify="space-between">
+                        <VStack align="start" spacing={1}>
+                          <Text fontWeight="bold">{formatDate(content.date)}</Text>
+                          <Text>Total Responses: {content.totalResponses}</Text>
+                          <Text>Feedback Type: {content.feedbacktype}</Text>
+                        </VStack>
+                        <Button 
+                          size="sm" 
+                          colorScheme="blue"
+                          onClick={() => {
+                            handleDayClick(content);
+                            onClose();
+                          }}
+                        >
+                          View Feedback
+                        </Button>
+                      </HStack>
+                    </CardBody>
+                  </Card>
                 ))}
-              </Tbody>
-            </Table>
-          </Box>
-        </VStack>
-      </Box>
-    )
-  }
-  
-  export default FeedbackDetails
+              </VStack>
+            </ModalBody>
+          </ModalContent>
+        </Modal>
+      </VStack>
+    </Box>
+  );
+}
+
+export default FeedbackDetails;

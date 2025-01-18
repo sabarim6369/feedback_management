@@ -29,9 +29,11 @@ import {
   Text,
   useToast,
 } from '@chakra-ui/react';
+
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function Feedback() {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -39,12 +41,13 @@ function Feedback() {
   const [formData, setFormData] = useState({
     title: '',
     college: '',
-    departments: '',  // Changed from department to departments
+    departments: '',
     selectedTutor: '',
     selectedTutors: [],
     fromDate: '',
     toDate: '',
   });
+  const navigate = useNavigate();
   const [colleges, setColleges] = useState([]);
   const [tutors, setTutors] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,11 +55,10 @@ function Feedback() {
   const [currentFeedbackId, setCurrentFeedbackId] = useState(null);
   const toast = useToast();
 
-  // Fetch feedbacks
   const fetchFeedbacks = async () => {
     try {
       const response = await axios.get('http://localhost:8000/api/feedback/feedbacks');
-      setFeedbacks(response.data);
+      setFeedbacks(response.data.reverse()); // Reverse the feedbacks array
       setLoading(false);
     } catch (err) {
       console.error('Error fetching feedbacks:', err);
@@ -68,12 +70,12 @@ function Feedback() {
       setLoading(false);
     }
   };
+  
 
   useEffect(() => {
     fetchFeedbacks();
   }, []);
 
-  // Fetch colleges and tutors
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -103,13 +105,15 @@ function Feedback() {
   };
 
   const handleAddTutor = () => {
-    if (formData.selectedTutor && !formData.selectedTutors.includes(formData.selectedTutor)) {
+    if (formData.selectedTutor && !formData.selectedTutors.some(t => t._id === formData.selectedTutor)) {
       const selectedTutor = tutors.find(t => t._id === formData.selectedTutor);
-      setFormData({
-        ...formData,
-        selectedTutors: [...formData.selectedTutors, selectedTutor],
-        selectedTutor: '',
-      });
+      if (selectedTutor) {
+        setFormData({
+          ...formData,
+          selectedTutors: [...formData.selectedTutors, selectedTutor],
+          selectedTutor: '',
+        });
+      }
     }
   };
 
@@ -120,21 +124,24 @@ function Feedback() {
     });
   };
 
-  const handleEdit = (feedback) => {
+  const handleEdit = (feedback, e) => {
+    e.stopPropagation(); // Prevent row click event
     setCurrentFeedbackId(feedback._id);
     setFormData({
       title: feedback.sessionname,
-      college: feedback.college_id,
+      college: feedback.college_id._id, // Use college ID instead of the whole object
       departments: Array.isArray(feedback.departments) ? feedback.departments.join(', ') : feedback.departments,
       selectedTutors: feedback.tutors,
       fromDate: new Date(feedback.startdate).toISOString().split('T')[0],
       toDate: new Date(feedback.enddate).toISOString().split('T')[0],
+      selectedTutor: '',
     });
     setEditMode(true);
     onOpen();
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id, e) => {
+    e.stopPropagation(); // Prevent row click event
     try {
       await axios.post(`http://localhost:8000/api/feedback/deletefeedback/${id}`);
       toast({
@@ -216,6 +223,10 @@ function Feedback() {
     }
   };
 
+  const handleRowClick = (feedback) => {
+    navigate(`/feedback/${feedback._id}`);
+  };
+
   return (
     <Box p={6}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={6}>
@@ -255,9 +266,14 @@ function Feedback() {
         </Thead>
         <Tbody>
           {feedbacks.map((feedback) => (
-            <Tr key={feedback._id}>
+            <Tr
+              key={feedback._id}
+              onClick={() => handleRowClick(feedback)}
+              style={{ cursor: 'pointer' }}
+              _hover={{ bg: 'gray.50' }}
+            >
               <Td>{feedback.sessionname}</Td>
-              <Td>{feedback.college_id}</Td>
+              <Td>{feedback.college_id.collegename}</Td>
               <Td>
                 {Array.isArray(feedback.departments) 
                   ? feedback.departments.join(', ')
@@ -267,7 +283,7 @@ function Feedback() {
                 <HStack spacing={2} wrap="wrap">
                   {feedback.tutors.map((tutor, index) => (
                     <Tag key={index} size="md" colorScheme="blue" borderRadius="full">
-                      <TagLabel>{tutor}</TagLabel>
+                      <TagLabel>{tutor.name}</TagLabel>
                     </Tag>
                   ))}
                 </HStack>
@@ -283,14 +299,28 @@ function Feedback() {
                 </VStack>
               </Td>
               <Td>
-                <Badge colorScheme={feedback.status === 'Active' ? 'green' : 'red'} px={2} py={1} borderRadius="full">
-                  {feedback.status}
-                </Badge>
+              <Badge
+  colorScheme={
+    feedback.status === "Active"
+      ? "green"
+      : feedback.status === "cancelled"
+      ? "red"
+      : feedback.status === "completed"
+      ? "yellow"
+      : "gray" 
+  }
+  px={2}
+  py={1}
+  borderRadius="full"
+>
+  {feedback.status}
+</Badge>
+
               </Td>
-              <Td>
+              <Td onClick={e => e.stopPropagation()}>
                 <HStack spacing={2}>
-                  <Button size="sm" colorScheme="yellow" onClick={() => handleEdit(feedback)}>Edit</Button>
-                  <Button size="sm" colorScheme="red" onClick={() => handleDelete(feedback._id)}>Delete</Button>
+                  <Button size="sm" colorScheme="yellow" onClick={(e) => handleEdit(feedback, e)}>Edit</Button>
+                  <Button size="sm" colorScheme="red" onClick={(e) => handleDelete(feedback._id, e)}>Delete</Button>
                 </HStack>
               </Td>
             </Tr>
@@ -348,11 +378,13 @@ function Feedback() {
                     onChange={(e) => setFormData({ ...formData, selectedTutor: e.target.value })}
                     placeholder="Select tutor"
                   >
-                    {tutors.map((tutor) => (
-                      <option key={tutor._id} value={tutor._id}>
-                        {tutor.name}
-                      </option>
-                    ))}
+                    {tutors
+                      .filter(tutor => !formData.selectedTutors.some(st => st._id === tutor._id))
+                      .map((tutor) => (
+                        <option key={tutor._id} value={tutor._id}>
+                          {tutor.name}
+                        </option>
+                      ))}
                   </Select>
                   <Button colorScheme="blue" onClick={handleAddTutor}>Add</Button>
                 </HStack>

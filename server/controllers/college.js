@@ -1,7 +1,7 @@
 const collegemodel = require("../models/collegeschema");
 const getColleges = async (req, res) => {
     try {
-        const colleges = await collegemodel.find();
+        const colleges = await collegemodel.find({status:'active'});
 
         if (!colleges || colleges.length === 0) {
             return res.status(404).json({ message: "No colleges found" });
@@ -59,18 +59,22 @@ const updatecollege = async (req, res) => {
         res.status(500).json({ message: "Server error", error: err });
     }
 };
-
 const deletecollege = async (req, res) => {
     const { collegeId } = req.params;
 
     try {
-        const deletedCollege = await collegemodel.findByIdAndDelete(collegeId);
+        // Find the college by ID and update its status to inactive
+        const updatedCollege = await collegemodel.findByIdAndUpdate(
+            collegeId,
+            { status: "inactive" },
+            { new: true } // Return the updated document
+        );
 
-        if (!deletedCollege) {
+        if (!updatedCollege) {
             return res.status(404).json({ message: "College not found" });
         }
 
-        res.status(200).json({ message: "College deleted successfully" });
+        res.status(200).json({ message: "College marked as inactive successfully", college: updatedCollege });
     } catch (err) {
         console.error("Error occurred:", err);
         res.status(500).json({ message: "Server error", error: err });

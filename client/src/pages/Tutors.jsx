@@ -18,7 +18,6 @@ import {
   FormControl,
   FormLabel,
   Input,
-  Select,
   Spinner,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
@@ -28,12 +27,10 @@ function Tutors() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [tutors, setTutors] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [colleges, setColleges] = useState([]); // To store fetched colleges
   const [formData, setFormData] = useState({
     name: '',
     specialization: '',
     experience: '',
-    college: '',
   });
   const [editTutorId, setEditTutorId] = useState(null);
 
@@ -41,7 +38,7 @@ function Tutors() {
     const fetchTutors = async () => {
       try {
         const response = await axios.get('http://localhost:8000/api/tutor/gettutors');
-        setTutors(response.data.tutors);
+        setTutors(response.data.tutors.filter((tutor) => tutor.status === 'active')); // Filter active tutors
         setLoading(false);
       } catch (err) {
         console.error('Error fetching tutors:', err);
@@ -52,24 +49,10 @@ function Tutors() {
     fetchTutors();
   }, []);
 
-  // Fetch colleges
-  useEffect(() => {
-    const fetchColleges = async () => {
-      try {
-        const response = await axios.get('http://localhost:8000/api/college/getcolleges');
-        setColleges(response.data.colleges); // Set fetched colleges
-      } catch (err) {
-        console.error('Error fetching colleges:', err);
-      }
-    };
-
-    fetchColleges();
-  }, []);
-
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const { name, specialization, experience, college } = formData;
-    const newTutor = { name, specialization, experience, college };
+    const { name, specialization, experience } = formData;
+    const newTutor = { name, specialization, experience };
 
     try {
       if (editTutorId) {
@@ -93,10 +76,20 @@ function Tutors() {
           onClose();
         }
       }
-      setFormData({ name: '', specialization: '', experience: '', college: '' });
+      setFormData({ name: '', specialization: '', experience: '' });
     } catch (err) {
       console.error('Error:', err);
     }
+  };
+
+  const handleEdit = (tutor) => {
+    setFormData({
+      name: tutor.name,
+      specialization: tutor.specialization,
+      experience: tutor.experience,
+    });
+    setEditTutorId(tutor._id);
+    onOpen();
   };
 
   const handleDelete = async (tutorId) => {
@@ -108,23 +101,6 @@ function Tutors() {
     } catch (err) {
       console.error('Error deleting tutor:', err);
     }
-  };
-
-  const handleEdit = (tutor) => {
-    setFormData({
-      name: tutor.name,
-      specialization: tutor.specialization,
-      experience: tutor.experience,
-      college: tutor.college,
-    });
-    setEditTutorId(tutor._id); // Ensure you use _id
-    onOpen();
-  };
-
-  // Helper function to get college name from college ID
-  const getCollegeName = (collegeId) => {
-    const college = colleges.find((college) => college._id === collegeId);
-    return college ? college.collegename : '';
   };
 
   return (
@@ -145,7 +121,6 @@ function Tutors() {
               <Th>Name</Th>
               <Th>Specialization</Th>
               <Th>Experience</Th>
-              <Th>College</Th>
               <Th>Actions</Th>
             </Tr>
           </Thead>
@@ -155,7 +130,6 @@ function Tutors() {
                 <Td>{tutor.name}</Td>
                 <Td>{tutor.specialization}</Td>
                 <Td>{tutor.experience}</Td>
-                <Td>{getCollegeName(tutor.college)}</Td> {/* Display college name */}
                 <Td>
                   <Button
                     size="sm"
@@ -204,20 +178,6 @@ function Tutors() {
                 value={formData.experience}
                 onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
               />
-            </FormControl>
-            <FormControl>
-              <FormLabel>College</FormLabel>
-              <Select
-                value={formData.college}
-                onChange={(e) => setFormData({ ...formData, college: e.target.value })}
-              >
-                <option value="">Select College</option>
-                {colleges.map((college) => (
-                  <option key={college._id} value={college._id}>
-                    {college.collegename} {/* Display college name */}
-                  </option>
-                ))}
-              </Select>
             </FormControl>
           </ModalBody>
           <ModalFooter>

@@ -69,11 +69,6 @@
 
 // const Feedback = mongoose.model("Feedback", feedbackschema);
 // module.exports = Feedback;
-
-
-
-
-
 const mongoose = require("mongoose");
 
 const feedbackschema = new mongoose.Schema({
@@ -104,12 +99,15 @@ const feedbackschema = new mongoose.Schema({
     },
     tutors: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Tutor",  // Assuming you have a Tutor model
+        ref: "Tutor",
     }],
     status: {
         type: String,
-        enum: ["Active", "Inactive"],
+        enum: ["Active", "cancelled","completed"],
         default: "Active",
+    },
+    link: {
+        type: String
     },
     feedbackcontent: [
         {
@@ -119,11 +117,15 @@ const feedbackschema = new mongoose.Schema({
             },
             feedbacktype: {
                 type: String,
-                enum: ["anonymous", "public"],
+                enum: ["private", "public"],
                 required: true,
             },
+            totalResponses: {
+                type: Number,
+                default: 0,
+            },
             records: {
-                type: Object,
+                type: [Object],  
                 required: true,
             },
         },

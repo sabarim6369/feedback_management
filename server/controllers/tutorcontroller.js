@@ -3,7 +3,7 @@ const Tutor = require('../models/tutor');
 // Get all tutors
 const getTutors = async (req, res) => {
   try {
-    const tutors = await Tutor.find();
+    const tutors = await Tutor.find({status:'active'});
     if (!tutors || tutors.length === 0) {
       return res.status(404).json({ message: "No tutors found" });
     }
@@ -18,7 +18,7 @@ const getTutors = async (req, res) => {
 const addTutor = async (req, res) => {
   const { name, specialization, experience, college } = req.body;
   try {
-    if (!name || !specialization || !experience || !college) {
+    if (!name || !specialization || !experience) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
@@ -26,7 +26,8 @@ const addTutor = async (req, res) => {
       name,
       specialization,
       experience,
-      college,
+      status:"active"
+
     });
 
     await newTutor.save();
@@ -41,7 +42,7 @@ const addTutor = async (req, res) => {
 const updateTutor = async (req, res) => {
   try {
     const { tutorId } = req.params;
-    const { name, specialization, experience, college } = req.body;
+    const { name, specialization, experience} = req.body;
 
     const tutor = await Tutor.findById(tutorId);
     if (!tutor) {
@@ -51,7 +52,6 @@ const updateTutor = async (req, res) => {
     tutor.name = name || tutor.name;
     tutor.specialization = specialization || tutor.specialization;
     tutor.experience = experience || tutor.experience;
-    tutor.college = college || tutor.college;
 
     await tutor.save();
 
@@ -67,16 +67,22 @@ const deleteTutor = async (req, res) => {
   try {
     const { tutorId } = req.params;
 
-    const deletedTutor = await Tutor.findByIdAndDelete(tutorId);
-    if (!deletedTutor) {
+    const updatedTutor = await Tutor.findByIdAndUpdate(
+      tutorId,
+      { status: 'inactive' }, // Set the status to inactive
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedTutor) {
       return res.status(404).json({ message: 'Tutor not found' });
     }
 
-    res.status(200).json({ message: 'Tutor deleted successfully', deletedTutor });
+    res.status(200).json({ message: 'Tutor marked as inactive successfully', updatedTutor });
   } catch (err) {
-    console.error('Error deleting tutor:', err);
+    console.error('Error updating tutor status:', err);
     res.status(500).json({ message: 'Server error', error: err });
   }
 };
+
 
 module.exports = { getTutors, addTutor, updateTutor, deleteTutor };
