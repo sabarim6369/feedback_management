@@ -20,7 +20,7 @@ function FeedbackForm() {
   useEffect(() => {
     const fetchFeedback = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/api/feedback/feedbacks/${id}`);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/feedback/feedbacks/${id}`);
         setFeedbackData(response.data);
 
         const today = new Date().toISOString().split('T')[0];
@@ -29,7 +29,7 @@ function FeedbackForm() {
 
         if (today >= startDate && today <= endDate) {
           setIsFeedbackActive(true);
-          setIsToday(endDate === today); // Set `isToday` only if today is the last day
+          setIsToday(endDate === today); 
         } else {
           setIsFeedbackActive(false);
         }
@@ -52,7 +52,7 @@ function FeedbackForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const feedbackType = isToday ? 'public' : 'anonymous'; // If it's the last day, feedback is public
+    const feedbackType = isToday ? 'public' : 'anonymous';
     const feedbackPayload = {
       specificTopic: formData.specificTopic,
       improvement: formData.improvement,
@@ -65,8 +65,7 @@ function FeedbackForm() {
     };
 
     try {
-      // Submit feedback data to the backend
-      await axios.post(`http://localhost:8000/api/feedback/feedbacks/${id}/submit`, feedbackPayload);
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/feedback/feedbacks/${id}/submit`, feedbackPayload);
       alert('Feedback submitted successfully!');
     } catch (error) {
       console.error('Error submitting feedback:', error);

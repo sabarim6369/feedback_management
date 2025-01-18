@@ -28,6 +28,7 @@ import {
   VStack,
   Text,
   useToast,
+  Spinner
 } from '@chakra-ui/react';
 
 import { Link } from 'react-router-dom';
@@ -56,10 +57,10 @@ function Feedback() {
   const toast = useToast();
 
   const fetchFeedbacks = async () => {
+    setLoading(true); // Start loading
     try {
-      const response = await axios.get('http://localhost:8000/api/feedback/feedbacks');
-      setFeedbacks(response.data.reverse()); // Reverse the feedbacks array
-      setLoading(false);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/feedback/feedbacks`);
+      setFeedbacks(response.data.reverse());
     } catch (err) {
       console.error('Error fetching feedbacks:', err);
       toast({
@@ -67,9 +68,11 @@ function Feedback() {
         status: 'error',
         duration: 3000,
       });
-      setLoading(false);
+    } finally {
+      setLoading(false); // End loading
     }
   };
+  
   
 
   useEffect(() => {
@@ -80,8 +83,8 @@ function Feedback() {
     const fetchData = async () => {
       try {
         const [collegesRes, tutorsRes] = await Promise.all([
-          axios.get('http://localhost:8000/api/college/getcolleges'),
-          axios.get('http://localhost:8000/api/tutor/gettutors')
+          axios.get(`${import.meta.env.VITE_API_URL}/api/college/getcolleges`),
+          axios.get(`${import.meta.env.VITE_API_URL}/api/tutor/gettutors`)
         ]);
         setColleges(collegesRes.data.colleges);
         setTutors(tutorsRes.data.tutors);
@@ -125,11 +128,11 @@ function Feedback() {
   };
 
   const handleEdit = (feedback, e) => {
-    e.stopPropagation(); // Prevent row click event
+    e.stopPropagation(); 
     setCurrentFeedbackId(feedback._id);
     setFormData({
       title: feedback.sessionname,
-      college: feedback.college_id._id, // Use college ID instead of the whole object
+      college: feedback.college_id._id, 
       departments: Array.isArray(feedback.departments) ? feedback.departments.join(', ') : feedback.departments,
       selectedTutors: feedback.tutors,
       fromDate: new Date(feedback.startdate).toISOString().split('T')[0],
@@ -141,9 +144,9 @@ function Feedback() {
   };
 
   const handleDelete = async (id, e) => {
-    e.stopPropagation(); // Prevent row click event
+    e.stopPropagation(); 
     try {
-      await axios.post(`http://localhost:8000/api/feedback/deletefeedback/${id}`);
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/feedback/deletefeedback/${id}`);
       toast({
         title: 'Feedback deleted successfully',
         status: 'success',
@@ -185,14 +188,14 @@ function Feedback() {
 
     try {
       if (editMode) {
-        await axios.post(`http://localhost:8000/api/feedback/updatefeedback/${currentFeedbackId}`, feedbackData);
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/feedback/updatefeedback/${currentFeedbackId}`, feedbackData);
         toast({
           title: 'Feedback updated successfully',
           status: 'success',
           duration: 3000,
         });
       } else {
-        await axios.post('http://localhost:8000/api/feedback/addfeedback', feedbackData);
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/feedback/addfeedback`, feedbackData);
         toast({
           title: 'Feedback created successfully',
           status: 'success',
@@ -226,7 +229,14 @@ function Feedback() {
   const handleRowClick = (feedback) => {
     navigate(`/feedback/${feedback._id}`);
   };
-
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" h="100vh">
+        <Spinner size="xl" thickness="4px" speed="0.65s" color="blue.500" />
+      </Box>
+    );
+  }
+  
   return (
     <Box p={6}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={6}>

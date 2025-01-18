@@ -26,7 +26,8 @@ import axios from 'axios';
 function Tutors() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [tutors, setTutors] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [isFetching, setFetching] = useState(true); // Loader for initial fetch
+  const [isActionLoading, setActionLoading] = useState({}); // Loaders for specific actions
   const [formData, setFormData] = useState({
     name: '',
     specialization: '',
@@ -34,54 +35,60 @@ function Tutors() {
   });
   const [editTutorId, setEditTutorId] = useState(null);
 
+  // Fetch Tutors
   useEffect(() => {
     const fetchTutors = async () => {
+      setFetching(true);
       try {
-        const response = await axios.get('http://localhost:8000/api/tutor/gettutors');
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/tutor/gettutors`);
         setTutors(response.data.tutors.filter((tutor) => tutor.status === 'active')); // Filter active tutors
-        setLoading(false);
       } catch (err) {
         console.error('Error fetching tutors:', err);
-        setLoading(false);
+      } finally {
+        setFetching(false);
       }
     };
 
     fetchTutors();
   }, []);
 
+  // Add or Update Tutor
   const handleSubmit = async (event) => {
     event.preventDefault();
     const { name, specialization, experience } = formData;
     const newTutor = { name, specialization, experience };
 
+    setActionLoading((prev) => ({ ...prev, addOrUpdate: true })); // Loader for add/update button
     try {
       if (editTutorId) {
         const response = await axios.put(
-          `http://localhost:8000/api/tutor/updatetutor/${editTutorId}`,
+          `${import.meta.env.VITE_API_URL}/api/tutor/updatetutor/${editTutorId}`,
           newTutor
         );
         if (response.status === 200) {
-          setTutors(
-            tutors.map((tutor) =>
+          setTutors((prevTutors) =>
+            prevTutors.map((tutor) =>
               tutor._id === editTutorId ? { ...tutor, ...newTutor } : tutor
             )
           );
-          onClose();
-          setEditTutorId(null);
         }
       } else {
-        const response = await axios.post('http://localhost:8000/api/tutor/addtutor', newTutor);
+        const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/tutor/addtutor`, newTutor);
         if (response.status === 201) {
-          setTutors([...tutors, response.data.tutor]);
-          onClose();
+          setTutors((prevTutors) => [...prevTutors, response.data.tutor]);
         }
       }
       setFormData({ name: '', specialization: '', experience: '' });
+      onClose();
+      setEditTutorId(null);
     } catch (err) {
       console.error('Error:', err);
+    } finally {
+      setActionLoading((prev) => ({ ...prev, addOrUpdate: false }));
     }
   };
 
+  // Edit Tutor
   const handleEdit = (tutor) => {
     setFormData({
       name: tutor.name,
@@ -92,14 +99,18 @@ function Tutors() {
     onOpen();
   };
 
+  // Delete Tutor
   const handleDelete = async (tutorId) => {
+    setActionLoading((prev) => ({ ...prev, [tutorId]: true })); // Loader for delete button
     try {
-      const response = await axios.delete(`http://localhost:8000/api/tutor/deletetutor/${tutorId}`);
+      const response = await axios.delete(`${import.meta.env.VITE_API_URL}/api/tutor/deletetutor/${tutorId}`);
       if (response.status === 200) {
-        setTutors(tutors.filter((tutor) => tutor._id !== tutorId));
+        setTutors((prevTutors) => prevTutors.filter((tutor) => tutor._id !== tutorId));
       }
     } catch (err) {
       console.error('Error deleting tutor:', err);
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [tutorId]: false }));
     }
   };
 
@@ -112,7 +123,7 @@ function Tutors() {
         </Button>
       </Box>
 
-      {loading ? (
+      {isFetching ? (
         <Spinner size="xl" />
       ) : (
         <Table variant="simple">
@@ -136,6 +147,7 @@ function Tutors() {
                     colorScheme="yellow"
                     mr={2}
                     onClick={() => handleEdit(tutor)}
+                    isLoading={isActionLoading[tutor._id]} // Loader for edit button (optional)
                   >
                     Edit
                   </Button>
@@ -143,6 +155,7 @@ function Tutors() {
                     size="sm"
                     colorScheme="red"
                     onClick={() => handleDelete(tutor._id)}
+                    isLoading={isActionLoading[tutor._id]} // Loader for delete button
                   >
                     Delete
                   </Button>
@@ -181,7 +194,12 @@ function Tutors() {
             </FormControl>
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={handleSubmit}>
+            <Button
+              colorScheme="blue"
+              mr={3}
+              onClick={handleSubmit}
+              isLoading={isActionLoading.addOrUpdate} // Loader for Add/Update button
+            >
               {editTutorId ? 'Update' : 'Save'}
             </Button>
             <Button onClick={onClose}>Cancel</Button>

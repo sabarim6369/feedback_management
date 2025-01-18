@@ -50,7 +50,7 @@ function FeedbackDetails() {
   useEffect(() => {
     const fetchFeedbackDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/api/feedback/feedbacks/${id}`);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/feedback/feedbacks/${id}`);
         setFeedbackDetails(response.data);
       } catch (error) {
         console.error('Error fetching feedback details:', error);

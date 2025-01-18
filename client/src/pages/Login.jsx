@@ -17,8 +17,8 @@ export const isAuthenticated = () => {
   if (!token) return false;
 
   try {
-    const decodedToken = jwtDecode(token); // Decode the token
-    return decodedToken?.exp > Math.floor(Date.now() / 1000); // Check if the token is not expired
+    const decodedToken = jwtDecode(token); 
+    return decodedToken?.exp > Math.floor(Date.now() / 1000); 
   } catch {
     return false;
   }
@@ -44,7 +44,7 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:8000/api/auth/loginuser', { email, password });
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/loginuser`, { email, password });
       const token = response.data.token;
       localStorage.setItem('token', token);
 

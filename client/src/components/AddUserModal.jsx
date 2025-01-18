@@ -83,7 +83,7 @@ function AddUserModal({ isOpen, onClose }) {
               placeholder="Select role"
             >
               <option value="admin">Admin</option>
-              <option value="user">User</option>
+              <option value="staffs">staffs</option>
             </Select>
           </FormControl>
         </ModalBody>

@@ -27,6 +27,8 @@ function Colleges() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [colleges, setColleges] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingId, setLoadingId] = useState(null); // Track specific college ID
+  const [isSubmitting, setIsSubmitting] = useState(false); // For Add/Edit modal
   const [formData, setFormData] = useState({
     name: '',
     location: '',
@@ -34,15 +36,15 @@ function Colleges() {
   });
   const [editingCollegeId, setEditingCollegeId] = useState(null);
 
-  // Fetch colleges from the database on component mount
   useEffect(() => {
     const fetchColleges = async () => {
+      setLoading(true);
       try {
-        const response = await axios.get('http://localhost:8000/api/college/getcolleges');
-        setColleges(response.data.colleges); // Update the state with fetched data
-        setLoading(false);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/college/getcolleges`);
+        setColleges(response.data.colleges);
       } catch (err) {
         console.error('Error fetching colleges:', err);
+      } finally {
         setLoading(false);
       }
     };
@@ -52,6 +54,7 @@ function Colleges() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setIsSubmitting(true);
 
     const { name, location, departments } = formData;
     const newCollege = {
@@ -61,18 +64,16 @@ function Colleges() {
     };
 
     try {
-      const response = await axios.post('http://localhost:8000/api/college/addcollege', newCollege);
-
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/college/addcollege`, newCollege);
       if (response.status === 201) {
-        setColleges([
-          ...colleges,
-          {
-            id: response.data.college.id,
-            name: response.data.college.collegename,
-            location: response.data.college.place,
-            departments: response.data.college.availabledepartment,
-          },
-        ]);
+        const addedCollege = {
+          _id: response.data.college.id,
+          collegename: response.data.college.collegename,
+          place: response.data.college.place,
+          availabledepartment: response.data.college.availabledepartment,
+        };
+
+        setColleges((prevColleges) => [...prevColleges, addedCollege]);
         onClose();
         setFormData({ name: '', location: '', departments: '' });
       } else {
@@ -80,6 +81,8 @@ function Colleges() {
       }
     } catch (err) {
       console.error('Error:', err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -94,9 +97,9 @@ function Colleges() {
   };
 
   const handleDelete = async (collegeId) => {
+    setLoadingId(collegeId); // Set loading ID to the current college ID
     try {
-      const response = await axios.post(`http://localhost:8000/api/college/deletecollege/${collegeId}`);
-
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/college/deletecollege/${collegeId}`);
       if (response.status === 200) {
         setColleges(colleges.filter((college) => college._id !== collegeId));
       } else {
@@ -104,11 +107,14 @@ function Colleges() {
       }
     } catch (err) {
       console.error('Error:', err);
+    } finally {
+      setLoadingId(null); // Clear loading ID
     }
   };
 
   const handleUpdate = async (event) => {
     event.preventDefault();
+    setIsSubmitting(true);
 
     const { name, location, departments } = formData;
     const updatedCollege = {
@@ -118,8 +124,7 @@ function Colleges() {
     };
 
     try {
-      const response = await axios.post(`http://localhost:8000/api/college/updatecollege/${editingCollegeId}`, updatedCollege);
-
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/college/updatecollege/${editingCollegeId}`, updatedCollege);
       if (response.status === 200) {
         const updatedColleges = colleges.map((college) =>
           college._id === editingCollegeId ? { ...college, ...updatedCollege } : college
@@ -132,6 +137,8 @@ function Colleges() {
       }
     } catch (err) {
       console.error('Error:', err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -139,8 +146,8 @@ function Colleges() {
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={6}>
         <Heading size="lg">Colleges</Heading>
-        <Button colorScheme="blue" onClick={onOpen}>
-          Add College
+        <Button colorScheme="blue" onClick={onOpen} isDisabled={isSubmitting}>
+          {isSubmitting ? <Spinner size="sm" /> : 'Add College'}
         </Button>
       </Box>
 
@@ -163,11 +170,22 @@ function Colleges() {
                 <Td>{college.place}</Td>
                 <Td>{college.availabledepartment.join(', ')}</Td>
                 <Td>
-                  <Button size="sm" colorScheme="yellow" mr={2} onClick={() => handleEdit(college)}>
-                    Edit
+                  <Button
+                    size="sm"
+                    colorScheme="yellow"
+                    mr={2}
+                    onClick={() => handleEdit(college)}
+                    isDisabled={loadingId === college._id || isSubmitting}
+                  >
+                    {loadingId === college._id ? <Spinner size="sm" /> : 'Edit'}
                   </Button>
-                  <Button size="sm" colorScheme="red" onClick={() => handleDelete(college._id)}>
-                    Delete
+                  <Button
+                    size="sm"
+                    colorScheme="red"
+                    onClick={() => handleDelete(college._id)}
+                    isDisabled={loadingId === college._id}
+                  >
+                    {loadingId === college._id ? <Spinner size="sm" /> : 'Delete'}
                   </Button>
                 </Td>
               </Tr>
@@ -206,10 +224,17 @@ function Colleges() {
             </FormControl>
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={editingCollegeId ? handleUpdate : handleSubmit}>
+            <Button
+              colorScheme="blue"
+              mr={3}
+              onClick={editingCollegeId ? handleUpdate : handleSubmit}
+              isLoading={isSubmitting}
+            >
               {editingCollegeId ? 'Update' : 'Save'}
             </Button>
-            <Button onClick={onClose}>Cancel</Button>
+            <Button onClick={onClose} isDisabled={isSubmitting}>
+              Cancel
+            </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
