@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom';
 import '../styles/feedbackform.css';
 import feedbackImg from '../assets/in.jpg';
 import axios from 'axios';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function FeedbackForm() {
   const { id } = useParams();
@@ -71,10 +73,20 @@ function FeedbackForm() {
 
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/api/feedback/feedbacks/${id}/submit`, feedbackPayload);
-      alert('Feedback submitted successfully!');
+
+      toast.success('Feedback submitted successfully!');
+      setFormData({
+        name: '',
+        email: '',
+        specificTopic: '',
+        improvement: '',
+        rating: 0,
+        department: '',
+        tutor: ''
+      })
     } catch (error) {
       console.error('Error submitting feedback:', error);
-      alert('Error submitting feedback');
+      toast.error('Error submitting feedback');
     }
   };
 
@@ -166,6 +178,8 @@ function FeedbackForm() {
           </button>
         </form>
       </div>
+      <ToastContainer position="top-center" />
+
     </div>
   );
 }
