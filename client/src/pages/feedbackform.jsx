@@ -70,7 +70,7 @@ function FeedbackForm() {
     };
 
     try {
-      await axios.post(`http://localhost:8000/api/feedback/feedbacks/${id}/submit`, feedbackPayload);
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/feedback/feedbacks/${id}/submit`, feedbackPayload);
       alert('Feedback submitted successfully!');
     } catch (error) {
       console.error('Error submitting feedback:', error);
