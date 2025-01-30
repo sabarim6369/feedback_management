@@ -1,5 +1,5 @@
 import { ChakraProvider, Box } from '@chakra-ui/react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Colleges from './pages/Colleges';
 import Tutors from './pages/Tutors';
@@ -7,6 +7,7 @@ import Feedback from './pages/Feedback';
 import FeedbackDetails from './pages/FeedbackDetails';
 import FeedbackForm from './pages/feedbackform';
 import Login from './pages/Login';
+
 function App() {
   return (
     <ChakraProvider>
@@ -18,9 +19,16 @@ function App() {
 }
 
 function MainLayout() {
-  const location = useLocation(); 
-  const isFeedbackFormPage = location.pathname.startsWith('/feedbackform/'); 
+  const location = useLocation();
+  const isFeedbackFormPage = location.pathname.startsWith('/feedbackform/');
   const isHomePage = location.pathname === '/';
+  const token = localStorage.getItem('token'); // Get token from localStorage
+
+  // Redirect to login if the user has no token and is not accessing the feedback form
+  if (!token && !isFeedbackFormPage && location.pathname !== '/') {
+    return <Navigate to="/" replace />;
+  }
+
   return (
     <Box display="flex">
       {!isFeedbackFormPage && !isHomePage && <Sidebar />}
@@ -30,13 +38,12 @@ function MainLayout() {
           <Route path="/tutors" element={<Tutors />} />
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/feedback/:id" element={<FeedbackDetails />} />
-          <Route path="/feedbackform/:id" element={<FeedbackForm />} />
+          <Route path="/feedbackform/:id" element={<FeedbackForm />} /> {/* Allowed without authentication */}
           <Route path="/" element={<Login />} />
         </Routes>
       </Box>
     </Box>
   );
 }
-
 
 export default App;
