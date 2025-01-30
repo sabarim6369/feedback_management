@@ -22,9 +22,7 @@ function MainLayout() {
   const location = useLocation();
   const isFeedbackFormPage = location.pathname.startsWith('/feedbackform/');
   const isHomePage = location.pathname === '/';
-  const token = localStorage.getItem('token'); // Get token from localStorage
-
-  // Redirect to login if the user has no token and is not accessing the feedback form
+  const token = localStorage.getItem('token'); 
   if (!token && !isFeedbackFormPage && location.pathname !== '/') {
     return <Navigate to="/" replace />;
   }
@@ -38,7 +36,7 @@ function MainLayout() {
           <Route path="/tutors" element={<Tutors />} />
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/feedback/:id" element={<FeedbackDetails />} />
-          <Route path="/feedbackform/:id" element={<FeedbackForm />} /> {/* Allowed without authentication */}
+          <Route path="/feedbackform/:id" element={<FeedbackForm />} />
           <Route path="/" element={<Login />} />
         </Routes>
       </Box>
