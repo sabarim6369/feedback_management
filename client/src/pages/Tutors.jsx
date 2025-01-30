@@ -19,6 +19,7 @@ import {
   FormLabel,
   Input,
   Spinner,
+  Center
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -26,8 +27,8 @@ import axios from 'axios';
 function Tutors() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [tutors, setTutors] = useState([]);
-  const [isFetching, setFetching] = useState(true); // Loader for initial fetch
-  const [isActionLoading, setActionLoading] = useState({}); // Loaders for specific actions
+  const [isFetching, setFetching] = useState(true);
+  const [isActionLoading, setActionLoading] = useState({}); 
   const [formData, setFormData] = useState({
     name: '',
     specialization: '',
@@ -35,13 +36,12 @@ function Tutors() {
   });
   const [editTutorId, setEditTutorId] = useState(null);
 
-  // Fetch Tutors
   useEffect(() => {
     const fetchTutors = async () => {
       setFetching(true);
       try {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/tutor/gettutors`);
-        setTutors(response.data.tutors.filter((tutor) => tutor.status === 'active')); // Filter active tutors
+        setTutors(response.data.tutors.filter((tutor) => tutor.status === 'active')); 
       } catch (err) {
         console.error('Error fetching tutors:', err);
       } finally {
@@ -52,13 +52,12 @@ function Tutors() {
     fetchTutors();
   }, []);
 
-  // Add or Update Tutor
   const handleSubmit = async (event) => {
     event.preventDefault();
     const { name, specialization, experience } = formData;
     const newTutor = { name, specialization, experience };
 
-    setActionLoading((prev) => ({ ...prev, addOrUpdate: true })); // Loader for add/update button
+    setActionLoading((prev) => ({ ...prev, addOrUpdate: true }));
     try {
       if (editTutorId) {
         const response = await axios.put(
@@ -88,7 +87,6 @@ function Tutors() {
     }
   };
 
-  // Edit Tutor
   const handleEdit = (tutor) => {
     setFormData({
       name: tutor.name,
@@ -99,9 +97,8 @@ function Tutors() {
     onOpen();
   };
 
-  // Delete Tutor
   const handleDelete = async (tutorId) => {
-    setActionLoading((prev) => ({ ...prev, [tutorId]: true })); // Loader for delete button
+    setActionLoading((prev) => ({ ...prev, [tutorId]: true }));
     try {
       const response = await axios.delete(`${import.meta.env.VITE_API_URL}/api/tutor/deletetutor/${tutorId}`);
       if (response.status === 200) {
@@ -124,7 +121,9 @@ function Tutors() {
       </Box>
 
       {isFetching ? (
-        <Spinner size="xl" />
+       <Center height="100vh">
+       <Spinner width="100px" height="100px" />
+     </Center>
       ) : (
         <Table variant="simple">
           <Thead>
@@ -147,7 +146,7 @@ function Tutors() {
                     colorScheme="yellow"
                     mr={2}
                     onClick={() => handleEdit(tutor)}
-                    isLoading={isActionLoading[tutor._id]} // Loader for edit button (optional)
+                    isLoading={isActionLoading[tutor._id]}
                   >
                     Edit
                   </Button>

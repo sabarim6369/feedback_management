@@ -26,7 +26,7 @@ function AddUserModal({ isOpen, onClose }) {
         duration: 5000,
         isClosable: true,
       });
-      onClose(); // Close modal after success
+      onClose(); 
     } catch (error) {
       toast({
         title: 'Error',
@@ -89,8 +89,7 @@ function AddUserModal({ isOpen, onClose }) {
         </ModalBody>
         <ModalFooter>
           <Button colorScheme="blue" mr={3} onClick={handleSubmit}>
-            Add User
-          </Button>
+Add Admin          </Button>
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>

@@ -14,14 +14,16 @@ function FeedbackForm() {
     email: '',
     specificTopic: '',
     improvement: '',
-    rating: 0
+    rating: 0,
+    department: '',
+    tutor: ''
   });
 
   useEffect(() => {
     const fetchFeedback = async () => {
       try {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/feedback/feedbacks/${id}`);
-        // const response = await axios.get(`http://localhost:8000/api/feedback/feedbacks/${id}`);
+        console.log("😎😎😎", response.data);
         setFeedbackData(response.data);
 
         const today = new Date().toISOString().split('T')[0];
@@ -59,6 +61,8 @@ function FeedbackForm() {
       improvement: formData.improvement,
       rating: formData.rating,
       feedbackType,
+      department: formData.department,
+      tutor: formData.tutor,
       ...(feedbackType === 'public' && {
         name: formData.name,
         email: formData.email
@@ -66,7 +70,7 @@ function FeedbackForm() {
     };
 
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/feedback/feedbacks/${id}/submit`, feedbackPayload);
+      await axios.post(`http://localhost:8000/api/feedback/feedbacks/${id}/submit`, feedbackPayload);
       alert('Feedback submitted successfully!');
     } catch (error) {
       console.error('Error submitting feedback:', error);
@@ -113,6 +117,26 @@ function FeedbackForm() {
               </div>
             </div>
           )}
+
+          <div className="form-group">
+            <label htmlFor="department">Select Department <span>*</span></label>
+            <select id="department" name="department" value={formData.department} onChange={handleChange} required>
+              <option value="">-- Select Department --</option>
+              {feedbackData.departments?.map((dept, index) => (
+                <option key={index} value={dept}>{dept}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="tutor">Select Tutor <span>*</span></label>
+            <select id="tutor" name="tutor" value={formData.tutor} onChange={handleChange} required>
+              <option value="">-- Select Tutor --</option>
+              {feedbackData.tutors?.map((tutor) => (
+                <option key={tutor._id} value={tutor.name}>{tutor.name} - {tutor.specialization}</option>
+              ))}
+            </select>
+          </div>
 
           <div className="form-group">
             <label htmlFor="specific-topic">Any Specific Topic required during the training <span>*</span></label>

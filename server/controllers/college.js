@@ -37,7 +37,7 @@ console.log(req.body)
     }
 };
 
-// In your college controller
+
 const updatecollege = async (req, res) => {
     const { collegeId } = req.params;
     const { collegename, availabledepartment, place } = req.body;
@@ -63,11 +63,11 @@ const deletecollege = async (req, res) => {
     const { collegeId } = req.params;
 
     try {
-        // Find the college by ID and update its status to inactive
+        
         const updatedCollege = await collegemodel.findByIdAndUpdate(
             collegeId,
             { status: "inactive" },
-            { new: true } // Return the updated document
+            { new: true } 
         );
 
         if (!updatedCollege) {

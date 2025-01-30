@@ -88,10 +88,16 @@ function FeedbackDetails() {
   };
 
   const handleDayClick = (day) => {
-    setSelectedDay(day);
+    setSelectedDay({
+      ...day,
+      records: day.records.map(record => ({
+        ...record,
+        date: new Date(day.date).toISOString().split('T')[0], // Ensure consistent format
+      }))
+    });
     setViewMode('single');
   };
-
+  
   const handleViewAllFeedback = () => {
     setSelectedDay(null);
   };
@@ -199,7 +205,6 @@ function FeedbackDetails() {
           </GridItem>
         </Grid>
 
-        {/* All Feedback Records Table */}
         <Box w="100%">
           <Card>
             <CardHeader>
@@ -226,24 +231,27 @@ function FeedbackDetails() {
                       <Th>Date</Th>
                       <Th>Student ID</Th>
                       <Th>Department</Th>
-                      <Th>Comment</Th>
+                      <Th>Topic required</Th>
+                      <Th>To improve</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {(selectedDay ? selectedDay.records : feedbackDetails.feedbackcontent.flatMap(content => 
-                      content.records.map(record => ({
-                        ...record,
-                        date: content.date
-                      }))
-                    )).map((record, index) => (
-                      <Tr key={index}>
-                        <Td>{formatDate(record.date)}</Td>
-                        <Td>{record.email || 'Anonymous'}</Td>
-                        <Td>{record.department || 'N/A'}</Td>
-                        <Td>{record.description || 'No Comment'}</Td>
-                      </Tr>
-                    ))}
-                  </Tbody>
+  {(selectedDay ? selectedDay.records : feedbackDetails.feedbackcontent.flatMap(content => 
+    content.records.map(record => ({
+      ...record,
+      date: new Date(content.date).toISOString().split('T')[0],
+    }))
+  )).map((record, index) => (
+    <Tr key={index}>
+      <Td>{formatDate(record.date)}</Td>
+      <Td>{record.email || 'Anonymous'}</Td>  
+      <Td>{record.department || 'N/A'}</Td>
+      <Td>{record.specificTopic || 'No Comment'}</Td>
+      <Td>{record.description || 'No Comment'}</Td>
+    </Tr>
+  ))}
+</Tbody>
+
                 </Table>
               </Box>
             </CardBody>

@@ -19,6 +19,7 @@ import {
   FormLabel,
   Input,
   Spinner,
+  Center
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -27,8 +28,8 @@ function Colleges() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [colleges, setColleges] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [loadingId, setLoadingId] = useState(null); // Track specific college ID
-  const [isSubmitting, setIsSubmitting] = useState(false); // For Add/Edit modal
+  const [loadingId, setLoadingId] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     location: '',
@@ -97,7 +98,8 @@ function Colleges() {
   };
 
   const handleDelete = async (collegeId) => {
-    setLoadingId(collegeId); // Set loading ID to the current college ID
+    setLoadingId(collegeId);
+    
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/college/deletecollege/${collegeId}`);
       if (response.status === 200) {
@@ -152,7 +154,10 @@ function Colleges() {
       </Box>
 
       {loading ? (
-        <Spinner size="xl" />
+          <Center height="100vh">
+          <Spinner width="100px" height="100px" />
+        </Center>
+        
       ) : (
         <Table variant="simple">
           <Thead>

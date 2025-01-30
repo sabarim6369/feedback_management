@@ -120,11 +120,9 @@ const deletefeedback = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err });
   }
 };
-
 const submitFeedback = async (req, res) => {
   const { feedbackId } = req.params;
-  const { college, specificTopic, improvement, rating, feedbackType, name, email } = req.body;
-  console.log(req.body, req.params);
+  const { specificTopic, improvement, rating, feedbackType, name, email, department, tutor } = req.body;
 
   try {
     const feedbackSession = await feedbackmodel.findById(feedbackId);
@@ -140,12 +138,17 @@ const submitFeedback = async (req, res) => {
     const todayFeedbackIndex = feedbackSession.feedbackcontent.findIndex(
       (feedback) => new Date(feedback.date).toISOString().split('T')[0] === today
     );
-
+console.log("sibsbob")
     const newFeedbackRecord = {
       rating,
       description: improvement,
+      specificTopic,
+      department,
+      tutor,
       ...(finalFeedbackType === 'public' && { name, email })
     };
+    console.log("sidssssssssssssssssbsbob")
+
 
     if (todayFeedbackIndex !== -1) {
       const existingFeedback = feedbackSession.feedbackcontent[todayFeedbackIndex];
@@ -161,12 +164,14 @@ const submitFeedback = async (req, res) => {
     }
 
     await feedbackSession.save();
+    
     res.status(200).json({ message: 'Feedback submitted successfully' });
   } catch (error) {
     console.error('Error submitting feedback:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
+
 
 
 

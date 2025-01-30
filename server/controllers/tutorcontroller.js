@@ -1,6 +1,5 @@
 const Tutor = require('../models/tutor');
 
-// Get all tutors
 const getTutors = async (req, res) => {
   try {
     const tutors = await Tutor.find({status:'active'});
@@ -14,7 +13,6 @@ const getTutors = async (req, res) => {
   }
 };
 
-// Add a new tutor
 const addTutor = async (req, res) => {
   const { name, specialization, experience, college } = req.body;
   try {
@@ -38,7 +36,6 @@ const addTutor = async (req, res) => {
   }
 };
 
-// Update a tutor
 const updateTutor = async (req, res) => {
   try {
     const { tutorId } = req.params;
@@ -52,6 +49,7 @@ const updateTutor = async (req, res) => {
     tutor.name = name || tutor.name;
     tutor.specialization = specialization || tutor.specialization;
     tutor.experience = experience || tutor.experience;
+    
 
     await tutor.save();
 
@@ -62,15 +60,14 @@ const updateTutor = async (req, res) => {
   }
 };
 
-// Delete a tutor
 const deleteTutor = async (req, res) => {
   try {
     const { tutorId } = req.params;
 
     const updatedTutor = await Tutor.findByIdAndUpdate(
       tutorId,
-      { status: 'inactive' }, // Set the status to inactive
-      { new: true } // Return the updated document
+      { status: 'inactive' },
+      { new: true } 
     );
 
     if (!updatedTutor) {

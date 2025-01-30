@@ -124,10 +124,17 @@ const feedbackschema = new mongoose.Schema({
                 type: Number,
                 default: 0,
             },
-            records: {
-                type: [Object],  
-                required: true,
-            },
+            records: [
+                {
+                    rating: { type: Number, required: true },
+                    description: { type: String, required: true },
+                    specificTopic: { type: String },
+                    department: { type: String },
+                    tutor: { type:String},
+                    name: { type: String },
+                    email: { type: String },
+                }
+            ],
         },
     ],
 });

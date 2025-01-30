@@ -43,7 +43,7 @@ function Sidebar() {
         boxShadow="md"
       >
         <Text fontSize="2xl" fontWeight="bold">
-          RAMPeX
+          FMS
         </Text>
       </Box>
       <VStack spacing={3} align="stretch">
@@ -75,11 +75,10 @@ function Sidebar() {
           onClick={handleAddUserClick}
           width="full"
         >
-          Add User
-        </Button>
+Add Admin        </Button>
       </VStack>
 
-      <Box position="absolute" bottom={5} left="50%" transform="translateX(-50%)">
+      <Box position="absolute" bottom={5} left="20%" >
         <Button
           colorScheme="red"
           variant="solid"
