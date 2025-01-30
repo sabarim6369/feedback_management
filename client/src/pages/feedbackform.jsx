@@ -11,6 +11,7 @@ function FeedbackForm() {
   const [feedbackData, setFeedbackData] = useState(null);
   const [isToday, setIsToday] = useState(false);
   const [isFeedbackActive, setIsFeedbackActive] = useState(false);
+  const[submitted,setissubmitted]=useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -22,16 +23,41 @@ function FeedbackForm() {
   });
 
   useEffect(() => {
+    const checkSubmissionStatus = () => {
+      const isSubmitted = localStorage.getItem("status");
+      if (isSubmitted) {
+        setissubmitted(true); 
+      }
+    };
+  
+    checkSubmissionStatus();
+
+
+
+    const removeStatusAtMidnight = () => {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(24, 0, 0, 0); 
+  
+      const timeUntilMidnight = midnight - now;
+  
+      setTimeout(() => {
+        localStorage.removeItem("status");
+      }, timeUntilMidnight);
+    };
+  
+    removeStatusAtMidnight();
+  
     const fetchFeedback = async () => {
       try {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/feedback/feedbacks/${id}`);
         console.log("😎😎😎", response.data);
         setFeedbackData(response.data);
-
+  
         const today = new Date().toISOString().split('T')[0];
         const startDate = new Date(response.data.startdate).toISOString().split('T')[0];
         const endDate = new Date(response.data.enddate).toISOString().split('T')[0];
-
+  
         if (today >= startDate && today <= endDate) {
           setIsFeedbackActive(true);
           setIsToday(endDate === today); 
@@ -42,9 +68,10 @@ function FeedbackForm() {
         console.error('Error fetching feedback:', error);
       }
     };
-
+  
     fetchFeedback();
   }, [id]);
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -56,7 +83,10 @@ function FeedbackForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+const issubmitted=localStorage.getItem("status");
+if(issubmitted){
+  setissubmitted(true);
+}
     const feedbackType = isToday ? 'public' : 'anonymous';
     const feedbackPayload = {
       specificTopic: formData.specificTopic,
@@ -75,6 +105,7 @@ function FeedbackForm() {
       await axios.post(`${import.meta.env.VITE_API_URL}/api/feedback/feedbacks/${id}/submit`, feedbackPayload);
 
       toast.success('Feedback submitted successfully!');
+      localStorage.setItem("status","submitted");
       setFormData({
         name: '',
         email: '',
@@ -92,7 +123,7 @@ function FeedbackForm() {
 
   if (!feedbackData) return <div>Loading...</div>;
   if (!isFeedbackActive) return <div>Feedback is not available at this time.</div>;
-
+  if(submitted) return <div>You have already submitted your feedback</div>
   return (
     <div className="feedback-container">
       <div className="feedback-image">

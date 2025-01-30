@@ -57,7 +57,7 @@ function Feedback() {
   const toast = useToast();
 
   const fetchFeedbacks = async () => {
-    setLoading(true); // Start loading
+    setLoading(true);
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/feedback/feedbacks`);
       setFeedbacks(response.data.reverse());
@@ -69,7 +69,7 @@ function Feedback() {
         duration: 3000,
       });
     } finally {
-      setLoading(false); // End loading
+      setLoading(false);
     }
   };
   

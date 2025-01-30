@@ -110,7 +110,7 @@ function Colleges() {
     } catch (err) {
       console.error('Error:', err);
     } finally {
-      setLoadingId(null); // Clear loading ID
+      setLoadingId(null);
     }
   };
 
