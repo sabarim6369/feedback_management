@@ -24,7 +24,7 @@ function FeedbackForm() {
 
   useEffect(() => {
     const checkSubmissionStatus = () => {
-      const isSubmitted = localStorage.getItem("status");
+      const isSubmitted = localStorage.getItem(`status_${id}`);
       if (isSubmitted) {
         setissubmitted(true); 
       }
@@ -42,7 +42,7 @@ function FeedbackForm() {
       const timeUntilMidnight = midnight - now;
   
       setTimeout(() => {
-        localStorage.removeItem("status");
+        localStorage.removeItem(`status_${id}`);
       }, timeUntilMidnight);
     };
   
@@ -83,10 +83,11 @@ function FeedbackForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-const issubmitted=localStorage.getItem("status");
-if(issubmitted){
-  setissubmitted(true);
-}
+    if (localStorage.getItem(`status_${id}`)) {
+      setissubmitted(true);
+      return;
+    }
+  
     const feedbackType = isToday ? 'public' : 'anonymous';
     const feedbackPayload = {
       specificTopic: formData.specificTopic,
@@ -105,7 +106,7 @@ if(issubmitted){
       await axios.post(`${import.meta.env.VITE_API_URL}/api/feedback/feedbacks/${id}/submit`, feedbackPayload);
 
       toast.success('Feedback submitted successfully!');
-      localStorage.setItem("status","submitted");
+      localStorage.setItem(`status_${id}`, "submitted");
       setFormData({
         name: '',
         email: '',
