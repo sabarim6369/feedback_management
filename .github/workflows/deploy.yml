@@ -3,22 +3,19 @@ name: Deploy to AWS EC2
 on:
   push:
     branches:
-      - main  # Runs when you push to main branch
+      - main 
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repo
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Login to Docker Hub
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
 
-      # Build and push Docker images
       - name: Build and push Docker images
         run: |
           docker build -t your-dockerhub-username/feedback-client:latest ./client
@@ -26,7 +23,6 @@ jobs:
           docker push your-dockerhub-username/feedback-client:latest
           docker push your-dockerhub-username/feedback-server:latest
 
-      # SSH into EC2 and deploy
       - name: Deploy to AWS EC2
         uses: appleboy/ssh-action@master
         with:
