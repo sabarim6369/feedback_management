@@ -36,5 +36,5 @@ jobs:
             docker stop feedback-server || true
             docker rm feedback-client || true
             docker rm feedback-server || true
-            docker run -d --name feedback-client -p 80:80 your-dockerhub-username/feedback-client:latest
-            docker run -d --name feedback-server -p 8000:8000 your-dockerhub-username/feedback-server:latest
+            docker run -d --name feedback-client -p 80:80 sabarim6369/feedback-client:latest
+            docker run -d --name feedback-server -p 8000:8000 sabarim6369/feedback-server:latest
