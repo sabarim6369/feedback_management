@@ -12,12 +12,15 @@ function AddUserModal({ isOpen, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:8000/api/auth/adduser', {
-        email,
-        password,
-        username,
-        role,
-      });
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/auth/adduser`,
+        {
+          email,
+          password,
+          username,
+          role,
+        }
+      );
 
       toast({
         title: 'User created.',
